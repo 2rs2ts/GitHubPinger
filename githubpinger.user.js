@@ -18,6 +18,21 @@ function loadJQueryUIStyle() {
     GM_addStyle(GM_getResourceText("JQueryUIStyle"));
 }
 
+function loadGitHubPingerStyle() {
+    var styleText = ""+
+    "#githubpinger-message-dialog {"+
+        "display: table;"+
+    "}"+
+    "#message-body {"+
+        "width: 100%;"+
+        "display: inline-block;"+
+    "}"+
+    ".ui-dialog-buttonset button {"+
+        "display: inline-block;"+
+    "};";
+    GM_addStyle(GM_getResourceText(styleText));
+}
+
 function loggedIn() {
     return $('body').hasClass('logged_in');
 }
@@ -26,9 +41,8 @@ function getUsername() {
     return window.location.pathname.replace('/','');
 }
 
-function createDialog() {
-    loadJQueryUIStyle();
 function createMessageDialog() {
+    //loadGitHubPingerStyle();
     return $(
         "<div id='githubpinger-message-dialog' class='dialog' title='GitHubPinger'>"+
             "<p>Send a message to: " + getUsername() + "? This will be a real dialog someday!</p>"+
@@ -120,6 +134,10 @@ function addButton() {
     $buttonNode.click(clicky);
 
     $('div .tabnav-right').prepend($buttonNode);
+}
+
+function getUsersRepos() {
+
 }
 
 function letsGetPinging() {
