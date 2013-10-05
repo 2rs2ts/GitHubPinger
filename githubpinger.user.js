@@ -4,8 +4,13 @@
 // @include /^https?://github\.com/[0-9A-Za-z]+$/
 // @require http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.js
 // @require http://code.jquery.com/ui/1.10.3/jquery-ui.js
-// @version 0.03
+// @resource JQueryUIStyle http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css
+// @version 0.04
 // ==/UserScript==
+
+function loadJQueryUIStyle() {
+    GM_addStyle(GM_getResourceText("JQueryUIStyle"));
+}
 
 function loggedIn() {
     return $('body').hasClass('logged_in');
@@ -16,8 +21,9 @@ function getUsername() {
 }
 
 function createDialog() {
+    loadJQueryUIStyle();
     return $(
-        "<div id='githubpinger-dialog' title='GitHubPinger'>"+
+        "<div id='githubpinger-dialog' class='dialog' title='GitHubPinger'>"+
             "Send a message to: " + getUsername() + "? This will be a real dialog someday!"+
         "</div>"
     ).dialog({
@@ -25,11 +31,11 @@ function createDialog() {
         modal: true,
         buttons: {
             "Send as gist (polite)": function() {
-                //sendAsGist();
+                sendAsGist();
                 $(this).dialog("Send as gist (polite)");
             },
             "Send as PR (annoying)": function() {
-                //sendAsPR();
+                sendAsPR();
                 $(this).dialog("Send as PR (annoying)");
             },
             Cancel: function() {
@@ -61,4 +67,10 @@ function addButton() {
     $('div .tabnav-right').prepend($buttonNode);
 }
 
-addButton();
+function letsGetPinging() {
+    if (loggedIn()) {
+        addButton();
+    }
+}
+
+letsGetPinging();
