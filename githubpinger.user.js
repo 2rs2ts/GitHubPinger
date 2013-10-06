@@ -89,29 +89,37 @@ function sendAsPR(message) {
             console.log(err);
         });
         console.log("we tried our fork!");
-        console.log(repo.contents);
-        (function waitForForkComplete(i) {
-            console.log("begin fork waiting...");
-            setTimeout(function () {
-                console.log("waiting for the fork...");
-                if (repo.contents) {
-                    console.log(repo.contents);
-                    var msg = $('#message-body').val();
-                    repo.write(
-                        'master',
-                        'ghp.txt',
-                        'GitHubPinger Message:\n---------------------\n\n'+msg,
-                        "GitHubPinger message from "+GM_getValue('ghpUsername', '???'),
-                        function (err) {
-                            console.log(err);
-                        }
-                    );
-                    beCute(repo, $('#message-body').val());
-                } else if (--i) {
-                    waitForForkComplete(i);
-                }
-            }, 3000);
-        })(10);
+        repo.contents('master', '', function(err, contents) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(contents);
+                var msg = $('#message-body').val();
+                repo.write(
+                    'master',
+                    'GitHubPinger.txt',
+                    'GitHubPinger Message:\n---------------------\n\n'+msg,
+                    "GitHubPinger message from "+GM_getValue('ghpUsername', '???'),
+                    function (err) {
+                        console.log(err);
+                    }
+                );
+                beCute(repo, $('#message-body').val());
+            }
+        });
+        // (function waitForForkComplete(i) {
+        //     console.log("begin fork waiting...");
+
+        //     setTimeout(function () {
+        //         console.log("waiting for the fork...");
+
+        //         if (repo.contents('master', '', function(err, contents) {}, sync=true)) {
+                    
+        //         } else if (--i) {
+        //             waitForForkComplete(i);
+        //         }
+        //     }, 3000);
+        // })(10);
     });
 }
 
