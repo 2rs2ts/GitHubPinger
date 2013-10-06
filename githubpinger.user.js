@@ -21,21 +21,6 @@ function loadJQueryUIStyle() {
     GM_addStyle(GM_getResourceText("JQueryUIStyle"));
 }
 
-function loadGitHubPingerStyle() {
-    var styleText = ""+
-    "#githubpinger-message-dialog {"+
-        "display: table;"+
-    "}"+
-    "#message-body {"+
-        "width: 100%;"+
-        "display: inline-block;"+
-    "}"+
-    ".ui-dialog-buttonset button {"+
-        "display: inline-block;"+
-    "};";
-    GM_addStyle(GM_getResourceText(styleText));
-}
-
 function loggedIn() {
     return $('body').hasClass('logged_in');
 }
@@ -45,7 +30,6 @@ function getUsername() {
 }
 
 function createMessageDialog() {
-    //loadGitHubPingerStyle();
     return $(
         "<div id='githubpinger-message-dialog' class='dialog' title='GitHubPinger'>"+
             "<p>Send a message to: " + GM_getValue('ghpTarget', 'not_a_user') + "? This will be a real dialog someday!</p>"+
@@ -75,14 +59,9 @@ function createMessageDialog() {
 }
 
 function sendAsPR(message) {
-    console.log("Username: " + GM_getValue('ghpUsername', 'not logged in'));
-    console.log("Password: " + GM_getValue('ghpPassword', 'not authenticated!'));
-    console.log("Send " + message + " as PR! Bad!");
     var github = connectToGitHub();
     var yourUser = github.getUser();
-    console.log(yourUser);
     yourUser.userRepos(GM_getValue('ghpTarget', 'not_a_user'), function(err, repos) {
-        console.log(repos);
         var repo_d;
         for (x=0; x<repos.length; ++x) {
             if (repos[x].owner.login == GM_getValue('ghpTarget', 'not_a_user')) {
@@ -91,16 +70,14 @@ function sendAsPR(message) {
             }
         }
         var repo = github.getRepo(GM_getValue('ghpTarget', 'not_a_user'), repo_d.name);
-        console.log(repo);
+        console.log(repo.name+" will be forked.");
         repo.fork(function(err){
-            console.log(err);
+            console.error(err);
         });
-        console.log("we tried our fork!");
         repo.contents('master', '', function(err, contents) {
             if (err) {
-                console.log(err);
+                console.error(err);
             } else {
-                console.log(contents);
                 var msg = $('#message-body').val();
                 var timestamp = new Date().getTime();
                 var yourRepo = github.getRepo(GM_getValue('ghpUsername', 'not_logged_in'), repo_d.name);
@@ -110,22 +87,15 @@ function sendAsPR(message) {
                     'GitHubPinger Message:\n---------------------\n\n'+msg,
                     "GitHubPinger message from "+GM_getValue('ghpUsername', '???'),
                     function (err) {
-                        console.log(err);
+                        console.error(err);
                     }
                 );
                 (function waitForCommitComplete(i) {
-                    console.log("begin commit waiting...");
                     setTimeout(function () {
-                        console.log("waiting for the commit...");
                         yourRepo.contents('master', '', function(err, contents) {
-                            console.log(JSON.parse(contents));
                             if (err || i === 0) {
-                                console.log("the commit never happened :(");
                             } else {
-                                console.log("oh boy!!");
                                 if ($.grep(JSON.parse(contents), function(e) {
-                                    console.log(e);
-                                    console.log('GitHubPinger-'+timestamp+'.txt.');
                                     return e.name == 'GitHubPinger-'+timestamp+'.txt';
                                 }).length == 1) {
                                     beCute(yourRepo, repo, $('#message-body').val());
@@ -138,26 +108,13 @@ function sendAsPR(message) {
                 })(10);
             }
         });
-        // (function waitForForkComplete(i) {
-        //     console.log("begin fork waiting...");
-
-        //     setTimeout(function () {
-        //         console.log("waiting for the fork...");
-
-        //         if (repo.contents('master', '', function(err, contents) {}, sync=true)) {
-                    
-        //         } else if (--i) {
-        //             waitForForkComplete(i);
-        //         }
-        //     }, 3000);
-        // })(10);
     });
 }
 
 function createLoginDialog() {
     return $(
         "<div id='githubpinger-login-dialog' class='dialog' title='Authenticate'>"+
-            "<p>Authenticate so you can make more than 60 requests per hour.</p>"+
+            "<p>Authenticate so you can fork a repository (required, unfortunately).</p>"+
             "<form><label><input type='text' id='ghp-username' class='text ui-widget-content'/>Username</label>"+
             "<label><input type='password' id='ghp-password' class='text ui-widget-content'/>Password</label></form>"+
         "</div>"
@@ -218,12 +175,10 @@ function connectToGitHub() {
         username: GM_getValue('ghpUsername', false),
         password: GM_getValue('ghpPassword', false)
     });
-    console.log(github);
     return github;
 }
 
 function beCute(yourRepo, theirRepo, msg) {
-    console.log("trying to be cute");
     theirRepo.createPullRequest(
         {
             title: "GitHubPinger message! Do not merge this ever.",
@@ -235,7 +190,7 @@ function beCute(yourRepo, theirRepo, msg) {
             if (err) {
                 alert("Message failed.");
             } else {
-                alert("Message succeeded!");
+                alert("Message succeeded! You forked "+theirRepo.name+".");
             }
         }
     );
