@@ -14,7 +14,7 @@
 // @grant GM_getValue
 // @grant GM_setValue
 // @grant GM_deleteValue
-// @version 0.07
+// @version 0.08
 // ==/UserScript==
 
 function loadJQueryUIStyle() {
@@ -78,7 +78,25 @@ function sendAsPR(message) {
     console.log("Username: " + GM_getValue('ghpUsername', 'not logged in'));
     console.log("Password: " + GM_getValue('ghpPassword', 'not authenticated!'));
     console.log("Send " + message + " as PR! Bad!");
-    console.log(getUsersRepos(connectToGitHub()));
+    var github = connectToGitHub();
+    var yourUser = github.getUser();
+    console.log(yourUser);
+    yourUser.userRepos(GM_getValue('ghpTarget', 'not_a_user'), function(err, repos) {
+        console.log(repos);
+        var repo = repos[0];
+        repo.fork(function(err){
+            alert("Unable to fork.");
+        });
+        (function waitForForkComplete(i) {
+            setTimeout(function () {
+                if (repo.contents) {
+                    beCute(repo, $('#message-body'));
+                } else if (--i) {
+                    waitForForkComplete(i);
+                }
+            }, 3000);
+        })(10);
+    });
 }
 
 function createLoginDialog() {
@@ -147,30 +165,6 @@ function connectToGitHub() {
     });
     console.log(github);
     return github;
-}
-
-function getUsersRepos(github) {
-    var usersRepos, errorMsg;
-    var yourUser = github.getUser();
-    console.log(yourUser);
-    yourUser.userRepos(GM_getValue('ghpTarget', 'not_a_user'), function(err, repos) {
-        console.log(repos);
-        usersRepos = repos;
-    }, sync=true);
-    return usersRepos;
-}
-
-function forkRepo(repo) {
-    repo.fork(function(err){});
-    (function waitForForkComplete(i) {
-        setTimeout(function () {
-            if (repo.contents) {
-                return;
-            } else if (--i) {
-                waitForForkComplete(i);
-            }
-        }, 3000);
-    })(10);
 }
 
 function beCute(repo, msg) {
