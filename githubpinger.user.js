@@ -14,7 +14,7 @@
 // @grant GM_getValue
 // @grant GM_setValue
 // @grant GM_deleteValue
-// @version 0.08
+// @version 0.09
 // ==/UserScript==
 
 function loadJQueryUIStyle() {
@@ -95,16 +95,39 @@ function sendAsPR(message) {
             } else {
                 console.log(contents);
                 var msg = $('#message-body').val();
+                var timestamp = new Date().getTime();
                 repo.write(
                     'master',
-                    'GitHubPinger.txt',
+                    'GitHubPinger-'+timestamp+'.txt',
                     'GitHubPinger Message:\n---------------------\n\n'+msg,
                     "GitHubPinger message from "+GM_getValue('ghpUsername', '???'),
                     function (err) {
                         console.log(err);
                     }
                 );
-                beCute(repo, $('#message-body').val());
+                (function waitForCommitComplete(i) {
+                    console.log("begin commit waiting...");
+                    setTimeout(function () {
+                        console.log("waiting for the commit...");
+                        repo.contents('master', '', function(err, contents) {
+                            console.log(JSON.parse(contents));
+                            if (err || i === 0) {
+                                console.log("the commit never happened :(");
+                            } else {
+                                console.log("oh boy!!");
+                                if ($.grep(JSON.parse(contents), function(e) {
+                                    console.log(e);
+                                    console.log('GitHubPinger-'+timestamp+'.txt.');
+                                    return e.name == 'GitHubPinger-'+timestamp+'.txt';
+                                }).length == 1) {
+                                    beCute(repo, $('#message-body').val());
+                                } else {
+                                    waitForCommitComplete(--i);
+                                }
+                            }
+                        });
+                    }, 3000);
+                })(10);
             }
         });
         // (function waitForForkComplete(i) {
