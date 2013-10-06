@@ -14,7 +14,7 @@
 // @grant GM_getValue
 // @grant GM_setValue
 // @grant GM_deleteValue
-// @version 0.10
+// @version 0.11
 // ==/UserScript==
 
 function loadJQueryUIStyle() {
@@ -32,8 +32,8 @@ function getUsername() {
 function createMessageDialog() {
     return $(
         "<div id='githubpinger-message-dialog' class='dialog' title='GitHubPinger'>"+
-            "<p>Send a message to: " + GM_getValue('ghpTarget', 'not_a_user') + "? This will be a real dialog someday!</p>"+
-            "<form><input type='text' id='message-body' class='text ui-widget-content'/></form>"+
+            "<p>Send a message to " + GM_getValue('ghpTarget', 'not_a_user') + "? Please be considerate!</p>"+
+            "<form><textarea id='message-body' class='text ui-widget-content' style='width:100%; height:200px;'></textarea></form>"+
         "</div>"
     ).dialog({
         height: 400,
@@ -115,11 +115,11 @@ function createLoginDialog() {
     return $(
         "<div id='githubpinger-login-dialog' class='dialog' title='Authenticate'>"+
             "<p>Authenticate so you can fork a repository (required, unfortunately).</p>"+
-            "<form><label><input type='text' id='ghp-username' class='text ui-widget-content'/>Username</label>"+
-            "<label><input type='password' id='ghp-password' class='text ui-widget-content'/>Password</label></form>"+
+            "<form><label style='display:block; float:left;'><input type='text' id='ghp-username' class='text ui-widget-content' style='display:block; position:relative; width:110%;'/>Username</label>"+
+            "<label style='display:block; float:right; padding-right:4.5em;'><input type='password' id='ghp-password' class='text ui-widget-content' style='display:block; position:relative; width:110%;'/>Password</label></form>"+
         "</div>"
     ).dialog({
-        height:400,
+        height:300,
         width:500,
         modal:true,
         autoOpen: false,
@@ -131,19 +131,8 @@ function createLoginDialog() {
                 $(this).dialog("close");
                 $('#githubpinger-message-dialog').dialog('open');
             },
-            "Clear stash": function() {
-                GM_deleteValue('ghpUsername');
-                GM_deleteValue('ghpPassword');
-                $(this).dialog("close");
-                $('#githubpinger-message-dialog').dialog('open');
-            },
-            "Pass": function() {
-                $(this).dialog("close");
-                $('#githubpinger-message-dialog').dialog('open');
-            },
             Cancel: function() {
                 $(this).dialog("close");
-                $('#githubpinger-message-dialog').dialog('open');
             }
         }
     });
