@@ -14,7 +14,7 @@
 // @grant GM_getValue
 // @grant GM_setValue
 // @grant GM_deleteValue
-// @version 0.11
+// @version 0.12
 // ==/UserScript==
 
 function loadJQueryUIStyle() {
@@ -70,7 +70,7 @@ function sendAsPR(message) {
             }
         }
         var repo = github.getRepo(GM_getValue('ghpTarget', 'not_a_user'), repo_d.name);
-        console.log(repo.name+" will be forked.");
+        console.log(repo_d.name+" will be forked.");
         repo.fork(function(err){
             console.error(err);
         });
@@ -179,7 +179,9 @@ function beCute(yourRepo, theirRepo, msg) {
             if (err) {
                 alert("Message failed.");
             } else {
-                alert("Message succeeded! You forked "+theirRepo.name+".");
+                theirRepo.show(function(err, repo) {
+                    alert("Message succeeded! You forked "+repo.name+".");
+                });
             }
         }
     );
