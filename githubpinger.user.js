@@ -14,7 +14,7 @@
 // @grant GM_getValue
 // @grant GM_setValue
 // @grant GM_deleteValue
-// @version 0.09
+// @version 0.10
 // ==/UserScript==
 
 function loadJQueryUIStyle() {
@@ -128,7 +128,7 @@ function sendAsPR(message) {
                                     console.log('GitHubPinger-'+timestamp+'.txt.');
                                     return e.name == 'GitHubPinger-'+timestamp+'.txt';
                                 }).length == 1) {
-                                    beCute(yourRepo, $('#message-body').val());
+                                    beCute(yourRepo, repo, $('#message-body').val());
                                 } else {
                                     waitForCommitComplete(--i);
                                 }
@@ -222,13 +222,13 @@ function connectToGitHub() {
     return github;
 }
 
-function beCute(repo, msg) {
+function beCute(yourRepo, theirRepo, msg) {
     console.log("trying to be cute");
-    repo.createPullRequest(
+    theirRepo.createPullRequest(
         {
             title: "GitHubPinger message! Do not merge this ever.",
             body: msg,
-            head: GM_getValue('ghpTarget', 'not_a_user') + ":master",
+            head: GM_getValue('ghpUsername', 'not_logged_in') + ":master",
             base: "master"
         },
         function(err, pullRequest) {
