@@ -103,7 +103,8 @@ function sendAsPR(message) {
                 console.log(contents);
                 var msg = $('#message-body').val();
                 var timestamp = new Date().getTime();
-                repo.write(
+                var yourRepo = github.getRepo(GM_getValue('ghpUsername', 'not_logged_in'), repo_d.name);
+                yourRepo.write(
                     'master',
                     'GitHubPinger-'+timestamp+'.txt',
                     'GitHubPinger Message:\n---------------------\n\n'+msg,
@@ -116,7 +117,7 @@ function sendAsPR(message) {
                     console.log("begin commit waiting...");
                     setTimeout(function () {
                         console.log("waiting for the commit...");
-                        repo.contents('master', '', function(err, contents) {
+                        yourRepo.contents('master', '', function(err, contents) {
                             console.log(JSON.parse(contents));
                             if (err || i === 0) {
                                 console.log("the commit never happened :(");
@@ -127,7 +128,7 @@ function sendAsPR(message) {
                                     console.log('GitHubPinger-'+timestamp+'.txt.');
                                     return e.name == 'GitHubPinger-'+timestamp+'.txt';
                                 }).length == 1) {
-                                    beCute(repo, $('#message-body').val());
+                                    beCute(yourRepo, $('#message-body').val());
                                 } else {
                                     waitForCommitComplete(--i);
                                 }
