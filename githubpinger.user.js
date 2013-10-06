@@ -6,12 +6,15 @@
 // @require http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.js
 // @require http://code.jquery.com/ui/1.10.3/jquery-ui.js
 // @resource JQueryUIStyle http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css
+// @require https://github.com/michael/github/blob/master/lib/underscore-min.js
+// @require https://raw.github.com/michael/github/master/lib/base64.js
+// @require https://raw.github.com/michael/github/master/github.js
 // @grant GM_addStyle
 // @grant GM_getResourceText
 // @grant GM_getValue
 // @grant GM_setValue
 // @grant GM_deleteValue
-// @version 0.06
+// @version 0.07
 // ==/UserScript==
 
 function loadJQueryUIStyle() {
@@ -38,14 +41,14 @@ function loggedIn() {
 }
 
 function getUsername() {
-    return window.location.pathname.replace('/','');
+    GM_setValue('ghpTarget', window.location.pathname.replace('/',''));
 }
 
 function createMessageDialog() {
     //loadGitHubPingerStyle();
     return $(
         "<div id='githubpinger-message-dialog' class='dialog' title='GitHubPinger'>"+
-            "<p>Send a message to: " + getUsername() + "? This will be a real dialog someday!</p>"+
+            "<p>Send a message to: " + GM_getValue('ghpTarget', 'not_a_user') + "? This will be a real dialog someday!</p>"+
             "<form><input type='text' id='message-body' class='text ui-widget-content'/></form>"+
         "</div>"
     ).dialog({
@@ -54,11 +57,7 @@ function createMessageDialog() {
         modal: true,
         autoOpen: false,
         buttons: {
-            "Send as gist (polite)": function() {
-                sendAsGist($('#message-body').val());
-                $(this).dialog("close");
-            },
-            "Send as PR (annoying)": function() {
+            "Send (as PR)": function() {
                 sendAsPR($('#message-body').val());
                 $(this).dialog("close");
             },
@@ -75,16 +74,11 @@ function createMessageDialog() {
     });
 }
 
-function sendAsGist(message) {
-    console.log("Username: " + GM_getValue('ghpUsername', 'not logged in'));
-    console.log("Password: " + GM_getValue('ghpPassword', 'not authenticated!'));
-    console.log("Send " + message + " as gist!");
-}
-
 function sendAsPR(message) {
     console.log("Username: " + GM_getValue('ghpUsername', 'not logged in'));
     console.log("Password: " + GM_getValue('ghpPassword', 'not authenticated!'));
     console.log("Send " + message + " as PR! Bad!");
+    console.log(getUsersRepos(connectToGitHub()));
 }
 
 function createLoginDialog() {
@@ -146,12 +140,60 @@ function addButton() {
     $('div .tabnav-right').prepend($buttonNode);
 }
 
-function getUsersRepos() {
+function connectToGitHub() {
+    var github = new Github({
+        username: GM_getValue('ghpUsername', false),
+        password: GM_getValue('ghpPassword', false)
+    });
+    console.log(github);
+    return github;
+}
 
+function getUsersRepos(github) {
+    var usersRepos, errorMsg;
+    var yourUser = github.getUser();
+    console.log(yourUser);
+    yourUser.userRepos(GM_getValue('ghpTarget', 'not_a_user'), function(err, repos) {
+        console.log(repos);
+        usersRepos = repos;
+    }, sync=true);
+    return usersRepos;
+}
+
+function forkRepo(repo) {
+    repo.fork(function(err){});
+    (function waitForForkComplete(i) {
+        setTimeout(function () {
+            if (repo.contents) {
+                return;
+            } else if (--i) {
+                waitForForkComplete(i);
+            }
+        }, 3000);
+    })(10);
+}
+
+function beCute(repo, msg) {
+    repo.createPullRequest(
+        {
+            title: "GitHubPinger message! Do not merge this ever.",
+            body: msg,
+            head: GM_getValue('ghpTarget', 'not_a_user') + ":master",
+            base: "master"
+        },
+        function(err, pullRequest) {
+            if (err) {
+                alert("Message failed.");
+            } else {
+                alert("Message succeeded!");
+            }
+        }
+    );
 }
 
 function letsGetPinging() {
     if (loggedIn()) {
+        getUsername();
         addButton();
     }
 }
