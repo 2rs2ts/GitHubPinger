@@ -11,7 +11,7 @@
 // @grant GM_getValue
 // @grant GM_setValue
 // @grant GM_deleteValue
-// @version 0.05
+// @version 0.06
 // ==/UserScript==
 
 function loadJQueryUIStyle() {
@@ -62,6 +62,12 @@ function createMessageDialog() {
                 sendAsPR($('#message-body').val());
                 $(this).dialog("close");
             },
+            "Clear login stash": function() {
+                GM_deleteValue('ghpUsername');
+                GM_deleteValue('ghpPassword');
+                $(this).dialog("close");
+                $('#githubpinger-login-dialog').dialog('open');
+            },
             Cancel: function() {
                 $(this).dialog("close");
             }
@@ -70,10 +76,14 @@ function createMessageDialog() {
 }
 
 function sendAsGist(message) {
+    console.log("Username: " + GM_getValue('ghpUsername', 'not logged in'));
+    console.log("Password: " + GM_getValue('ghpPassword', 'not authenticated!'));
     console.log("Send " + message + " as gist!");
 }
 
 function sendAsPR(message) {
+    console.log("Username: " + GM_getValue('ghpUsername', 'not logged in'));
+    console.log("Password: " + GM_getValue('ghpPassword', 'not authenticated!'));
     console.log("Send " + message + " as PR! Bad!");
 }
 
