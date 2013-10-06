@@ -83,14 +83,30 @@ function sendAsPR(message) {
     console.log(yourUser);
     yourUser.userRepos(GM_getValue('ghpTarget', 'not_a_user'), function(err, repos) {
         console.log(repos);
-        var repo = repos[0];
+        var repo = github.getRepo(GM_getValue('ghpTarget', 'not_a_user'), repos[0].name);
+        console.log(repo);
         repo.fork(function(err){
-            alert("Unable to fork.");
+            console.log(err);
         });
+        console.log("we tried our fork!");
+        console.log(repo.contents);
         (function waitForForkComplete(i) {
+            console.log("begin fork waiting...");
             setTimeout(function () {
+                console.log("waiting for the fork...");
                 if (repo.contents) {
-                    beCute(repo, $('#message-body'));
+                    console.log(repo.contents);
+                    var msg = $('#message-body').val();
+                    repo.write(
+                        'master',
+                        'ghp.txt',
+                        'GitHubPinger Message:\n---------------------\n\n'+msg,
+                        "GitHubPinger message from "+GM_getValue('ghpUsername', '???'),
+                        function (err) {
+                            console.log(err);
+                        }
+                    );
+                    beCute(repo, $('#message-body').val());
                 } else if (--i) {
                     waitForForkComplete(i);
                 }
@@ -168,6 +184,7 @@ function connectToGitHub() {
 }
 
 function beCute(repo, msg) {
+    console.log("trying to be cute");
     repo.createPullRequest(
         {
             title: "GitHubPinger message! Do not merge this ever.",
