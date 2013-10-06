@@ -83,7 +83,14 @@ function sendAsPR(message) {
     console.log(yourUser);
     yourUser.userRepos(GM_getValue('ghpTarget', 'not_a_user'), function(err, repos) {
         console.log(repos);
-        var repo = github.getRepo(GM_getValue('ghpTarget', 'not_a_user'), repos[0].name);
+        var repo_d;
+        for (x=0; x<repos.length; ++x) {
+            if (repos[x].owner.login == GM_getValue('ghpTarget', 'not_a_user')) {
+                repo_d = repos[x];
+                break;
+            }
+        }
+        var repo = github.getRepo(GM_getValue('ghpTarget', 'not_a_user'), repo_d.name);
         console.log(repo);
         repo.fork(function(err){
             console.log(err);
